@@ -299,23 +299,31 @@ class info_window(QDialog):
         self.username = value
 
         args = ()
-        string = cursor.callproc('get_info', args)
+        cursor.callproc('get_info', args)
 
+        string = ''
+
+        for result in cursor.stored_results():
+            string = result.fetchall()
+
+        string = str(string).replace("datetime.datetime", '')
+        string = str(string).replace("datetime.date", '')
         string = str(string).replace("(", '')
         string = str(string).replace(")", '')
         string = str(string).replace("'", '')
+        string = str(string).replace("[", '')
+        string = str(string).replace("]", '')
 
-        string = str(string).split(',')
+        string = str(string).split(", ")
 
-        username_label = QLabel('username: ' + string[1])
-        fname_label = QLabel('first name:' + string[2])
-        lname_label = QLabel('last name:' + string[3])
-        phone_label = QLabel('phone:' + string[4])
-        birthday_label = QLabel('birthday:' + string[5])
-        nickname_label = QLabel('nickname:' + string[6])
-        pitt_label = QLabel('pitt:' + string[7])
-        address_label = QLabel('address:' + string[8])
-        time_label = QLabel('time created:' + string[9])
+        username_label = QLabel('username: ' + string[0])
+        fname_label = QLabel('first name:' + string[1])
+        lname_label = QLabel('last name:' + string[2])
+        phone_label = QLabel('phone:' + string[3])
+        birthday_label = QLabel('birthday:' + string[4] + '-' + string[5] + '-' + string[6])
+        nickname_label = QLabel('nickname:' + string[7])
+        pitt_label = QLabel('pitt:' + string[8])
+        address_label = QLabel('address:' + string[10])
 
         back_button = QPushButton('Back')
         back_button.clicked.connect(self.back_button_clicked)
@@ -330,7 +338,6 @@ class info_window(QDialog):
         layoutV.addWidget(nickname_label)
         layoutV.addWidget(pitt_label)
         layoutV.addWidget(address_label)
-        layoutV.addWidget(time_label)
         layoutV.addWidget(back_button)
 
         self.setLayout(layoutV)
@@ -443,21 +450,29 @@ class other_user_info(QDialog):
         self.other_username = new_user
         self.my_string = ''
 
-        args = (self.other_username, 0)
+        args = (self.other_username, )
 
-        string = self.cursor.callproc('check_available', args)
+        cursor.callproc('get_others_info', args)
 
+        string = ''
+
+        for result in cursor.stored_results():
+            string = result.fetchall()
+
+        string = str(string).replace("datetime.datetime", '')
+        string = str(string).replace("datetime.date", '')
         string = str(string).replace("(", '')
         string = str(string).replace(")", '')
         string = str(string).replace("'", '')
+        string = str(string).replace("[", '')
+        string = str(string).replace("]", '')
 
-        string = str(string).split(',')
+        string = str(string).split(", ")
 
-        string = string[1]
+        if len(string) < 8:
 
-        self.my_string = string
+            print(string)
 
-        if '0' in self.my_string:
             username_label = QLabel('username: ')
             fname_label = QLabel('first name:')
             lname_label = QLabel('last name:')
@@ -466,7 +481,6 @@ class other_user_info(QDialog):
             nickname_label = QLabel('nickname:')
             pitt_label = QLabel('pitt:')
             address_label = QLabel('address:')
-            time_label = QLabel('time created:')
 
             back_button = QPushButton('Back')
             back_button.clicked.connect(self.back_button_clicked)
@@ -481,104 +495,36 @@ class other_user_info(QDialog):
             layoutV.addWidget(nickname_label)
             layoutV.addWidget(pitt_label)
             layoutV.addWidget(address_label)
-            layoutV.addWidget(time_label)
             layoutV.addWidget(back_button)
 
             self.setLayout(layoutV)
 
         else:
-            args = (self.username, self.other_username, 0)
-            string = cursor.callproc('check_blocked', args)
+            username_label = QLabel('username: ' + string[0])
+            fname_label = QLabel('first name:' + string[1])
+            lname_label = QLabel('last name:' + string[2])
+            phone_label = QLabel('phone:' + string[3])
+            birthday_label = QLabel('birthday:' + string[4] + '-' + string[5] + '-' + string[6])
+            nickname_label = QLabel('nickname:' + string[7])
+            pitt_label = QLabel('pitt:' + string[8])
+            address_label = QLabel('address:' + string[10])
 
-            string = str(string).replace("(", '')
-            string = str(string).replace(")", '')
-            string = str(string).replace("'", '')
+            back_button = QPushButton('Back')
+            back_button.clicked.connect(self.back_button_clicked)
 
-            string = str(string).split(',')
+            layoutV = QVBoxLayout()
 
-            string = string[2]
+            layoutV.addWidget(username_label)
+            layoutV.addWidget(fname_label)
+            layoutV.addWidget(lname_label)
+            layoutV.addWidget(phone_label)
+            layoutV.addWidget(birthday_label)
+            layoutV.addWidget(nickname_label)
+            layoutV.addWidget(pitt_label)
+            layoutV.addWidget(address_label)
+            layoutV.addWidget(back_button)
 
-            if '1' in string:
-
-                any_user = self.username
-                args = (self.other_username, any_user + ' wanted to access your info and was blocked')
-
-                cursor.callproc('create_news', args)
-                conn.commit()
-
-                username_label = QLabel('username: ' + '***')
-                fname_label = QLabel('first name:' + '***')
-                lname_label = QLabel('last name:' + '***')
-                phone_label = QLabel('phone:' + '***')
-                birthday_label = QLabel('birthday:' + '***')
-                nickname_label = QLabel('nickname:' + '***')
-                pitt_label = QLabel('pitt:' + '***')
-                address_label = QLabel('address:' + '***')
-                time_label = QLabel('time created:' + '***')
-
-                back_button = QPushButton('Back')
-                back_button.clicked.connect(self.back_button_clicked)
-
-                layoutV = QVBoxLayout()
-
-                layoutV.addWidget(username_label)
-                layoutV.addWidget(fname_label)
-                layoutV.addWidget(lname_label)
-                layoutV.addWidget(phone_label)
-                layoutV.addWidget(birthday_label)
-                layoutV.addWidget(nickname_label)
-                layoutV.addWidget(pitt_label)
-                layoutV.addWidget(address_label)
-                layoutV.addWidget(time_label)
-                layoutV.addWidget(back_button)
-
-                self.setLayout(layoutV)
-
-            else:
-
-                any_user = self.username
-                arguments = (self.other_username, any_user + ' wanted to access your info and was granted access')
-
-                cursor.callproc('create_news', arguments)
-                conn.commit()
-
-                args = (self.other_username, '0', '0', '0', '0', '0', '0', '0', '0', '0')
-
-                string = cursor.callproc('get_info', args)
-
-                string = str(string).replace("(", '')
-                string = str(string).replace(")", '')
-                string = str(string).replace("'", '')
-
-                string = str(string).split(',')
-
-                username_label = QLabel('username: ' + string[1])
-                fname_label = QLabel('first name:' + string[2])
-                lname_label = QLabel('last name:' + string[3])
-                phone_label = QLabel('phone:' + string[4])
-                birthday_label = QLabel('birthday:' + string[5])
-                nickname_label = QLabel('nickname:' + string[6])
-                pitt_label = QLabel('pitt:' + string[7])
-                address_label = QLabel('address:' + string[8])
-                time_label = QLabel('time created:' + string[9])
-
-                back_button = QPushButton('Back')
-                back_button.clicked.connect(self.back_button_clicked)
-
-                layoutV = QVBoxLayout()
-
-                layoutV.addWidget(username_label)
-                layoutV.addWidget(fname_label)
-                layoutV.addWidget(lname_label)
-                layoutV.addWidget(phone_label)
-                layoutV.addWidget(birthday_label)
-                layoutV.addWidget(nickname_label)
-                layoutV.addWidget(pitt_label)
-                layoutV.addWidget(address_label)
-                layoutV.addWidget(time_label)
-                layoutV.addWidget(back_button)
-
-                self.setLayout(layoutV)
+            self.setLayout(layoutV)
 
     def back_button_clicked(self):
         self.go_back()
