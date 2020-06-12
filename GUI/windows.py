@@ -706,75 +706,23 @@ class create_email_window(QDialog):
 
     def send_button_clicked(self):
 
-        self.result = '0'
-
         arr_to_who = self.box_to_who.text()
-        arr_to_who = str(arr_to_who).replace("@foofle.com", '')
         arr_to_who = str(arr_to_who).split(',')
 
         arr_cc = self.box_cc.text()
-        arr_cc = str(arr_cc).replace("@foofle.com", '')
         arr_cc = str(arr_cc).split(',')
 
-        for i in range(len(arr_to_who)):
-            args = (arr_to_who[i], 0)
-            string = self.cursor.callproc('check_available', args)
+        args = (arr_to_who[0], arr_to_who[1],
+                arr_to_who[2], arr_cc[0], arr_cc[1], arr_cc[2],
+                self.box_text.text(), self.box_subject.text())
 
-            string = str(string).replace("(", '')
-            string = str(string).replace(")", '')
-            string = str(string).replace("'", '')
+        self.cursor.callproc('pro2_create_email', args)
 
-            string = str(string).split(',')
+        self.conn.commit()
 
-            string = string[1]
+        for result in self.cursor.stored_results():
+            print(result.fetchall())
 
-            if '0' in string:
-                if self.box_to_who.text() != '':
-                    self.result = '1'
-
-        for i in range(len(arr_cc)):
-            args = (arr_cc[i], 0)
-            string = self.cursor.callproc('check_available', args)
-
-            string = str(string).replace("(", '')
-            string = str(string).replace(")", '')
-            string = str(string).replace("'", '')
-
-            string = str(string).split(',')
-
-            string = string[1]
-
-            if '0' in string:
-                if self.box_cc.text() != '':
-                    self.result = '1'
-
-        if self.box_to_who.text() == '' and self.box_cc.text() == '':
-            self.result = '1'
-
-        if self.result != '1' and self.box_subject != '':
-            if self.box_to_who.text() != '':
-                for i in range(len(arr_to_who)):
-                    try:
-                        args = (self.username, str(arr_to_who[i]), '0', '0',
-                                self.box_subject.text(), self.box_text.text())
-
-                        self.cursor.callproc('create_email', args)
-                        self.conn.commit()
-                    except mysql.connector.Error as err:
-                        print("problem: {}".format(err))
-
-            if self.box_cc.text() != '':
-                for i in range(len(arr_cc)):
-                    try:
-                        args = (self.username, str(arr_cc[i]), '1', '0',
-                                self.box_subject.text(), self.box_text.text())
-
-                        self.cursor.callproc('create_email', args)
-                        self.conn.commit()
-                    except mysql.connector.Error as err:
-                        print("problem: {}".format(err))
-        else:
-            print('some of the users were unavailable')
 
     def back_button_clicked(self):
         self.go_back()
