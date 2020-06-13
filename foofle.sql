@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Jun 12, 2020 at 10:47 PM
+-- Generation Time: Jun 13, 2020 at 02:30 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.4
 
@@ -45,6 +45,36 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `create_news` (IN `owner` VARCHAR(25
     insert into news(owner, text, news_time) values (owner, text, now());
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_rec_email` (IN `sender1` VARCHAR(25), IN `in_subject` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where receiver = def_user and subject = in_subject and sender = sender1)
+    then
+        begin
+            UPDATE emails_new SET if_delete_receiver = '1' WHERE receiver = def_user and subject = in_subject and sender = sender1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
+ END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_sent_email` (IN `receiver1` VARCHAR(25), IN `in_subject` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where sender = def_user and subject = in_subject and receiver = receiver1)
+    then
+        begin
+            UPDATE emails_new SET if_delete_sender = '1' WHERE sender = def_user and subject = in_subject and receiver = receiver1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
+ END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_user` (IN `username` VARCHAR(25))  BEGIN
     delete from users where id = username;
     delete from news where owner = username;
@@ -61,6 +91,36 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `get_news` ()  BEGIN
     declare def_user varchar(25);
     select last_user into def_user from entries order by date_entered desc LIMIT 1;
     select text from news where owner = def_user order by news_time desc;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `get_one_rec_email` (IN `sender1` VARCHAR(25), IN `subject1` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where receiver = def_user and subject = subject1 and sender = sender1)
+    then
+        begin
+            select subject, text from emails_new where receiver = def_user and subject = subject1 and sender = sender1 LIMIT 1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `get_one_sent_email` (IN `receiver1` VARCHAR(25), IN `subject1` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where sender = def_user and subject = subject1 and receiver = receiver1)
+    then
+        begin
+            select subject, text from emails_new where sender = def_user and subject = subject1 and receiver = receiver1 LIMIT 1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_others_info` (IN `username` VARCHAR(25))  BEGIN
@@ -94,7 +154,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `get_rec_emails` (IN `page` INT)  be
     SET page_start = page - 1;
     SET page_end = page + 10;
     select last_user into def_user from entries order by date_entered desc LIMIT 1;
-    select subject, text, if_read from emails where receiver = def_user order by email_time desc LIMIT page_start, page_end;
+    select sender, subject, text, if_read_receiver from emails_new where receiver = def_user and if_delete_receiver = '0'
+    order by email_time desc LIMIT page_start, page_end;
 end$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_sent_emails` (IN `page` INT)  begin
@@ -104,7 +165,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `get_sent_emails` (IN `page` INT)  b
     SET page_start = page - 1;
     SET page_end = page + 10;
     select last_user into def_user from entries order by date_entered desc LIMIT 1;
-    select subject, text, if_read from emails where sender = def_user order by email_time desc LIMIT page_start, page_end;
+    select receiver, subject, text, if_read_sender from emails_new where sender = def_user and if_delete_sender = '0'
+    order by email_time desc LIMIT page_start, page_end;
 end$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `pro2_create_email` (IN `getter1` VARCHAR(25), IN `getter2` VARCHAR(25), IN `getter3` VARCHAR(25), IN `cc1` VARCHAR(25), IN `cc2` VARCHAR(25), IN `cc3` VARCHAR(25), IN `text1` VARCHAR(25), IN `subject1` VARCHAR(25))  begin
@@ -151,18 +213,36 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `pro2_create_email` (IN `getter1` VA
                                                             'getter3', getter30),
                                                             COLUMN_CREATE('cc1', cc10, 'cc2', cc20, 'cc3', cc30),
                                                             subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, getter10, '0','0',subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, getter20, '0','0',subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, getter30, '0','0',subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, cc10, '1','0',subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, cc20, '1','0',subject1, text1, now());
-                                                    insert into emails(sender, receiver, cc, if_read, subject, text, email_time)
-                                                    values (def_user, cc30, '1','0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, getter10, '0', '0', '0', '0', '0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, getter20, '0', '0', '0', '0', '0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, getter30, '0', '0', '0', '0', '0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, cc10, '1', '0', '0', '0', '0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, cc20, '1', '0', '0', '0', '0',subject1, text1, now());
+                                                    insert into emails_new(sender, receiver, cc,
+                                                                           if_read_sender,if_read_receiver,
+                                                                           if_delete_sender, if_delete_receiver,
+                                                                           subject, text, email_time)
+                                                    values (def_user, cc30, '1', '0', '0', '0', '0',subject1, text1, now());
                                                 end;
                                             else
                                                 begin
@@ -245,6 +325,38 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `pro_login` (IN `username` VARCHAR(2
         end;
     end if;
 end$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `read_rec_email` (IN `sender1` VARCHAR(25), IN `email_subject` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where receiver = def_user and subject = email_subject and sender = sender1)
+    then
+        begin
+            update emails_new set if_read_receiver = '1' where receiver = def_user and subject = email_subject and sender = sender1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `read_sent_email` (IN `receiver1` VARCHAR(25), IN `email_subject` VARCHAR(25))  BEGIN
+    declare def_user varchar(25);
+    select last_user into def_user from entries order by date_entered desc LIMIT 1;
+    if exists(select * from emails_new where sender = def_user and subject = email_subject and receiver = receiver1)
+    then
+        begin
+            update emails_new set if_read_sender = '1' where sender = def_user and subject = email_subject and receiver = receiver1;
+        end;
+    else
+        begin
+            select 'there is no such email';
+        end;
+    end if;
+    
+END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `update_info` (IN `fname` VARCHAR(25), IN `lname` VARCHAR(25), IN `phone` VARCHAR(25), IN `birthday` VARCHAR(25), IN `nickname` VARCHAR(25), IN `pitt_id` VARCHAR(25), IN `password` VARCHAR(25), IN `address` VARCHAR(25))  begin
     declare def_user varchar(25);
@@ -351,58 +463,39 @@ CREATE TABLE `block` (
 
 INSERT INTO `block` (`owner`, `b_user`) VALUES
 ('oplo34', 'qwerty'),
-('qwerty', 'oplo34');
+('qwerty', 'oplo34'),
+('qwerty', 'kasra2024');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `emails`
+-- Table structure for table `emails_new`
 --
 
-CREATE TABLE `emails` (
+CREATE TABLE `emails_new` (
   `sender` varchar(25) NOT NULL,
   `receiver` varchar(25) NOT NULL,
   `cc` varchar(10) NOT NULL,
-  `if_read` varchar(10) NOT NULL,
+  `if_read_sender` varchar(10) NOT NULL,
+  `if_read_receiver` varchar(10) NOT NULL,
+  `if_delete_sender` varchar(10) NOT NULL,
+  `if_delete_receiver` varchar(10) NOT NULL,
   `subject` varchar(25) DEFAULT NULL,
   `text` varchar(100) DEFAULT NULL,
   `email_time` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `emails`
+-- Dumping data for table `emails_new`
 --
 
-INSERT INTO `emails` (`sender`, `receiver`, `cc`, `if_read`, `subject`, `text`, `email_time`) VALUES
-('oplo34', '***', '0', '1', 'asdf', 'dfgsfhg', '2020-05-29 02:51:48'),
-('oplo34', 'qwerty', '0', '1', 'dfugksdhg', 'sdfjkh', '2020-05-29 02:51:48'),
-('qwerty', 'arqavan', '0', '0', 'os-projects', 'projects have been graded', '2020-06-11 11:50:43'),
-('qwerty', 'kasra', '1', '0', 'os-projects', 'projects have been graded', '2020-06-11 11:50:43'),
-('qwerty', 'nastooh', '1', '0', 'os-projects', 'projects have been graded', '2020-06-11 11:50:43'),
-('qwerty', 'kasra2024', '0', '0', 'os-projects', 'projects have been graded', '2020-06-11 13:50:05'),
-('qwerty', 'kasra2024', '0', '0', 'os-projects', 'projects have been graded', '2020-06-11 14:41:27'),
-('qwerty', 'qwerty', '0', '0', 'os-projects', 'adsf', '2020-06-11 14:45:06'),
-('qwerty', 'qwerty', '0', '0', 'os-projects', 'adsf', '2020-06-11 14:45:11'),
-('qwerty', 'qwerty', '0', '0', 'os-cts', 'habool', '2020-06-11 15:07:19'),
-('qwerty', 'qwerty', '0', '0', 'os-cts', 'habool', '2020-06-11 15:08:14'),
-('qwerty', 'kasra2024', '1', '0', 'os-cts', 'habool', '2020-06-11 15:08:14'),
-('qwerty', 'oplo34', '1', '0', 'os-cts', 'habool', '2020-06-11 15:08:14'),
-('qwerty', 'qwerty', '0', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08'),
-('qwerty', 'kasra2024', '0', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08'),
-('qwerty', 'qwerty369', '0', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08'),
-('qwerty', 'kasra2024', '1', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08'),
-('qwerty', 'popo123', '1', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08'),
-('qwerty', 'qwerty852', '1', '0', 'dead', 'popo is dead', '2020-06-12 23:50:08');
-
---
--- Triggers `emails`
---
-DELIMITER $$
-CREATE TRIGGER `email_trigger` AFTER INSERT ON `emails` FOR EACH ROW begin
-    insert into news(owner, text, news_time) values(NEW.receiver, 'you have a new email', NOW());
-end
-$$
-DELIMITER ;
+INSERT INTO `emails_new` (`sender`, `receiver`, `cc`, `if_read_sender`, `if_read_receiver`, `if_delete_sender`, `if_delete_receiver`, `subject`, `text`, `email_time`) VALUES
+('nicolas', 'qwerty', '0', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 16:15:48'),
+('nicolas', 'kasra2024', '0', '1', '1', '1', '1', 'dead', 'popo is dead', '2020-06-13 16:15:49'),
+('nicolas', 'qwerty369', '0', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 16:15:49'),
+('nicolas', 'kasra2024', '1', '1', '1', '1', '1', 'dead', 'popo is dead', '2020-06-13 16:15:49'),
+('nicolas', 'popo123', '1', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 16:15:49'),
+('nicolas', 'qwerty852', '1', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 16:15:49');
 
 -- --------------------------------------------------------
 
@@ -431,7 +524,15 @@ INSERT INTO `entries` (`last_user`, `date_entered`) VALUES
 ('qwerty', '2020-06-12 23:26:58'),
 ('qwerty', '2020-06-12 23:29:32'),
 ('qwerty', '2020-06-12 23:30:42'),
-('qwerty', '2020-06-13 00:47:30');
+('qwerty', '2020-06-13 00:47:30'),
+('qwerty', '2020-06-13 11:11:42'),
+('qwerty', '2020-06-13 12:18:20'),
+('qwerty', '2020-06-13 12:25:46'),
+('qwerty', '2020-06-13 15:07:46'),
+('qwerty', '2020-06-13 15:14:22'),
+('qwerty', '2020-06-13 15:15:03'),
+('jack123', '2020-06-13 15:34:43'),
+('nicolas', '2020-06-13 15:36:16');
 
 --
 -- Triggers `entries`
@@ -595,7 +696,24 @@ INSERT INTO `news` (`owner`, `text`, `news_time`) VALUES
 ('kasra2024', 'you have a new email', '2020-06-12 23:50:08'),
 ('popo123', 'you have a new email', '2020-06-12 23:50:08'),
 ('qwerty852', 'you have a new email', '2020-06-12 23:50:08'),
-('qwerty', 'you have logged in', '2020-06-13 00:47:30');
+('qwerty', 'you have logged in', '2020-06-13 00:47:30'),
+('qwerty', 'you have logged in', '2020-06-13 11:11:42'),
+('qwerty', 'you have logged in', '2020-06-13 12:18:20'),
+('qwerty', 'you have logged in', '2020-06-13 12:25:46'),
+('qwerty', 'you have logged in', '2020-06-13 15:07:46'),
+('qwerty', 'you have logged in', '2020-06-13 15:14:22'),
+('qwerty', 'you have logged in', '2020-06-13 15:15:03'),
+('jack123', 'you have signed up', '2020-06-13 15:34:35'),
+('jack123', 'you have logged in', '2020-06-13 15:34:43'),
+('nicolas', 'you have signed up', '2020-06-13 15:36:09'),
+('nicolas', 'you have logged in', '2020-06-13 15:36:16'),
+('kasra2024', 'you have a new email', '2020-06-13 15:54:14'),
+('nicolas', 'you have a new email', '2020-06-13 15:54:14'),
+('jack123', 'you have a new email', '2020-06-13 15:54:14'),
+('nicolas', 'you have a new email', '2020-06-13 15:54:14'),
+('oplo34', 'you have a new email', '2020-06-13 15:54:14'),
+('qwerty', 'you have a new email', '2020-06-13 15:54:14'),
+('kasra2024', 'you have logged in', '2020-06-13 16:39:28');
 
 -- --------------------------------------------------------
 
@@ -623,7 +741,9 @@ INSERT INTO `pro_emails` (`id`, `sender`, `receivers`, `ccs`, `subject`, `text`,
 (3, 'qwerty', 0x040300150000000300070073000e00e3006765747465723167657474657232676574746572332d7177657274792d7177657274792d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-12 23:04:33'),
 (5, 'qwerty', 0x0403001500000003000700a3000e0043016765747465723167657474657232676574746572332d6b61737261323032342d6b61737261323032342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-12 23:16:27'),
 (6, 'qwerty', 0x0403001500000003000700a3000e0043016765747465723167657474657232676574746572332d6b61737261323032342d6b61737261323032342d6b6173726132303234, 0x0403000900000003000300a300060043016363316363326363332d6b61737261323032342d6b61737261323032342d6b6173726132303234, 'pooooooooooo', 'mmad is dead', '2020-06-12 23:31:15'),
-(7, 'qwerty', 0x040300150000000300070073000e0013016765747465723167657474657232676574746572332d7177657274792d6b61737261323032342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-12 23:50:08');
+(7, 'qwerty', 0x040300150000000300070073000e0013016765747465723167657474657232676574746572332d7177657274792d6b61737261323032342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-12 23:50:08'),
+(8, 'nicolas', 0x0403001500000003000700a3000e0023016765747465723167657474657232676574746572332d6b61737261323032342d6e69636f6c61732d6a61636b313233, 0x040300090000000300030083000600f3006363316363326363332d6e69636f6c61732d6f706c6f33342d717765727479, 'jico is dead', 'he was killed like a dog', '2020-06-13 15:54:14'),
+(9, 'nicolas', 0x040300150000000300070073000e0013016765747465723167657474657232676574746572332d7177657274792d6b61737261323032342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-13 16:15:48');
 
 -- --------------------------------------------------------
 
@@ -651,8 +771,10 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `fname`, `lname`, `phone`, `birthday`, `nickname`, `pitt_id`, `password`, `address`, `date_created`) VALUES
 ('******', '***', '***', '***', '2020-01-01', '***', '***', '***', '***', '2020-06-09 17:45:20'),
 ('234567', '23', '23', '23', '2020-05-20', '23', '23', '37693cfc748049e45d87b8c7d8b9aacd', '23', '2020-05-27 12:11:39'),
+('jack123', 'jack', 'rice', '00123', '1998-02-02', 'jackiii', '002', '1d6c1e168e362bc0092f247399003a88', 'new york', '2020-06-13 15:34:35'),
 ('jojosaqsaq', 'gt', 'gt', 'gt', '2020-05-20', 'gt', 'gt', '81dc9bdb52d04dc20036dbd8313ed055', 'gt', '2020-05-27 14:19:07'),
 ('kasra2024', 'kasra', 'mojallal', '0938', '2020-05-08', 'kasii', '002', '81dc9bdb52d04dc20036dbd8313ed055', 'nyc', '2020-05-27 14:07:25'),
+('nicolas', 'nico', 'las', '0912', '2020-06-06', 'nikiiii', '0032', 'deb97a759ee7b8ba42e02dddf2b412fe', 'colalampoor', '2020-06-13 15:36:09'),
 ('niloo12', 'asdf', 'sdf', 'sdfsdf', '0000-00-00', 'sdfa', 'asdf', '81dc9bdb52d04dc20036dbd8313ed055', 'df', '2020-05-28 16:23:07'),
 ('oplo34', 'opolojoon', '1', 'asdfgsd', '0000-00-00', '1', '1', '81dc9bdb52d04dc20036dbd8313ed055', '1', '2020-05-27 12:31:07'),
 ('popo123', 'loli', 'piko', '0912', '2020-02-02', 'kasd', '002', '81dc9bdb52d04dc20036dbd8313ed055', 'asdkf', '2020-06-09 17:41:45'),
@@ -663,6 +785,12 @@ INSERT INTO `users` (`id`, `fname`, `lname`, `phone`, `birthday`, `nickname`, `p
 --
 -- Triggers `users`
 --
+DELIMITER $$
+CREATE TRIGGER `sign_up_news` AFTER INSERT ON `users` FOR EACH ROW begin
+    insert into news(owner, text, news_time) values(NEW.id, 'you have signed up', NOW());
+end
+$$
+DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `update_on_user_info` AFTER UPDATE ON `users` FOR EACH ROW begin
     insert into news(owner, text, news_time) values(NEW.id, 'you changed your info', NOW());
@@ -694,7 +822,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `pro_emails`
 --
 ALTER TABLE `pro_emails`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

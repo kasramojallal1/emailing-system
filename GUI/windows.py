@@ -110,9 +110,6 @@ class signup_window(QDialog):
 
         self.conn.commit()
 
-        arguments = (self.box_username.text(), 'you have signed up')
-        self.cursor.callproc('create_news', arguments)
-        self.conn.commit()
         self.go_to_login()
 
     def go_to_login(self):
@@ -238,7 +235,7 @@ class desktop_window(QDialog):
         self.go_to_block_user_window()
 
     def delete_account_clicked(self):
-        args = (self.username,)
+        args = ()
         self.cursor.callproc('delete_user', args)
         self.conn.commit()
         self.go_to_login()
@@ -379,7 +376,7 @@ class block_user_window(QDialog):
         self.setLayout(layoutV)
 
     def block_clicked(self):
-        args = (self.username, self.box_des_username.text())
+        args = (self.box_des_username.text(), )
         self.cursor.callproc('block_user', args)
         self.conn.commit()
 
@@ -836,48 +833,57 @@ class check_rec_emails_window(QDialog):
         self.username = value
         self.page_number = int(page_number)
         self.st = ''
+        self.st1 = ''
+        self.st2 = ''
         self.sub = ''
 
-        string = ''
-
-        args = (self.username, self.page_number - 1, self.page_number + 9)
+        args = (self.page_number,)
         cursor.callproc('get_rec_emails', args)
+
+        string = ''
 
         for result in cursor.stored_results():
             string = result.fetchall()
 
-        string = str(string).replace('[', '')
-        string = str(string).replace(']', '')
-        string = str(string).replace("),", '*')
-        string = str(string).replace('(', '')
-        string = str(string).replace(')', '')
-        string = str(string).replace("'", '')
+        if not string:
+            print('there is no result to show')
+            self.go_back()
+        else:
+            string = str(string).replace('[', '')
+            string = str(string).replace(']', '')
+            string = str(string).replace("),", '*')
+            string = str(string).replace('(', '')
+            string = str(string).replace(')', '')
+            string = str(string).replace("'", '')
 
-        string = str(string).split('*')
+            string = str(string).split('*')
 
-        result_string = [[] for i in range(len(string))]
+            result_string = [[] for i in range(len(string))]
 
-        for i in range(len(string)):
-            opo = string[i].split(',')
-            result_string[i].append(opo[0])
-            result_string[i].append(opo[1])
-            result_string[i].append(opo[2])
+            for i in range(len(string)):
+                opo = string[i].split(',')
+                result_string[i].append(opo[0])
+                result_string[i].append(opo[1])
+                result_string[i].append(opo[2])
+                result_string[i].append(opo[3])
 
-        back_button = QPushButton('Back')
-        back_button.clicked.connect(self.back_button_clicked)
+            back_button = QPushButton('Back')
+            back_button.clicked.connect(self.back_button_clicked)
 
-        layoutV = QVBoxLayout()
+            layoutV = QVBoxLayout()
 
-        self.list = QListWidget()
-        self.list.clicked.connect(self.list_clicked)
+            self.list = QListWidget()
+            self.list.clicked.connect(self.list_clicked)
 
-        for i in range(len(result_string)):
-            self.list.insertItem(i, 'Subject:' + result_string[i][0] + ',  Read:' + result_string[i][2])
+            for i in range(len(result_string)):
+                self.list.insertItem(i, 'Sender:' + result_string[i][0] + ',  Subject:'
+                                     + result_string[i][1] + ',  Read:' + result_string[i][3])
 
-        layoutV.addWidget(self.list)
-        layoutV.addWidget(back_button)
+            layoutV.addWidget(self.list)
+            layoutV.addWidget(back_button)
 
-        self.setLayout(layoutV)
+            self.setLayout(layoutV)
+
 
     def list_clicked(self):
         item = self.list.currentItem()
@@ -885,13 +891,14 @@ class check_rec_emails_window(QDialog):
 
         self.st = self.st.replace(' ', '')
         self.st = self.st.replace('Subject:', '')
+        self.st = self.st.replace('Sender:', '')
         self.st = self.st.split(',')
 
-        self.sub = self.st[0]
+        self.st1 = self.st[0]
+        self.st2 = self.st[1]
 
         string = ''
-        args = (self.username, self.st[0])
-
+        args = (self.st1, self.st2)
         self.cursor.callproc('get_one_rec_email', args)
 
         for result in self.cursor.stored_results():
@@ -905,7 +912,9 @@ class check_rec_emails_window(QDialog):
         string = str(string).replace("'", '')
         string = str(string).replace("'", '')
 
-        self.st = string
+        string = str(string).split(',')
+
+        self.st = string[1]
 
         self.go_to_email()
 
@@ -919,7 +928,7 @@ class check_rec_emails_window(QDialog):
 
     def go_to_email(self):
 
-        args = (self.username, self.sub)
+        args = (self.st1, self.st2)
         self.cursor.callproc('read_rec_email', args)
         self.conn.commit()
 
@@ -931,7 +940,7 @@ class check_rec_emails_window(QDialog):
 class check_sent_emails_window(QDialog):
     def __init__(self, value, page_number, cursor, conn, parent=None):
         super().__init__(parent)
-        self.setWindowTitle('check incoming emails')
+        self.setWindowTitle('check outgoing emails')
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_FileDialogInfoView))
 
         self.cursor = cursor
@@ -939,48 +948,57 @@ class check_sent_emails_window(QDialog):
         self.username = value
         self.page_number = int(page_number)
         self.st = ''
+        self.st1 = ''
+        self.st2 = ''
         self.sub = ''
 
-        string = ''
-
-        args = (self.username, self.page_number - 1, self.page_number + 9)
+        args = (self.page_number,)
         cursor.callproc('get_sent_emails', args)
+
+        string = ''
 
         for result in cursor.stored_results():
             string = result.fetchall()
 
-        string = str(string).replace('[', '')
-        string = str(string).replace(']', '')
-        string = str(string).replace("),", '*')
-        string = str(string).replace('(', '')
-        string = str(string).replace(')', '')
-        string = str(string).replace("'", '')
+        if not string:
+            print('there is no result to show')
+            self.go_back()
+        else:
+            string = str(string).replace('[', '')
+            string = str(string).replace(']', '')
+            string = str(string).replace("),", '*')
+            string = str(string).replace('(', '')
+            string = str(string).replace(')', '')
+            string = str(string).replace("'", '')
 
-        string = str(string).split('*')
+            string = str(string).split('*')
 
-        result_string = [[] for i in range(len(string))]
+            result_string = [[] for i in range(len(string))]
 
-        for i in range(len(string)):
-            opo = string[i].split(',')
-            result_string[i].append(opo[0])
-            result_string[i].append(opo[1])
-            result_string[i].append(opo[2])
+            for i in range(len(string)):
+                opo = string[i].split(',')
+                result_string[i].append(opo[0])
+                result_string[i].append(opo[1])
+                result_string[i].append(opo[2])
+                result_string[i].append(opo[3])
 
-        back_button = QPushButton('Back')
-        back_button.clicked.connect(self.back_button_clicked)
+            back_button = QPushButton('Back')
+            back_button.clicked.connect(self.back_button_clicked)
 
-        layoutV = QVBoxLayout()
+            layoutV = QVBoxLayout()
 
-        self.list = QListWidget()
-        self.list.clicked.connect(self.list_clicked)
+            self.list = QListWidget()
+            self.list.clicked.connect(self.list_clicked)
 
-        for i in range(len(result_string)):
-            self.list.insertItem(i, 'Subject:' + result_string[i][0] + ',  Read:' + result_string[i][2])
+            for i in range(len(result_string)):
+                self.list.insertItem(i, 'Receiver:' + result_string[i][0] + ',  Subject:'
+                                     + result_string[i][1] + ',  Read:' + result_string[i][3])
 
-        layoutV.addWidget(self.list)
-        layoutV.addWidget(back_button)
+            layoutV.addWidget(self.list)
+            layoutV.addWidget(back_button)
 
-        self.setLayout(layoutV)
+            self.setLayout(layoutV)
+
 
     def list_clicked(self):
         item = self.list.currentItem()
@@ -988,13 +1006,14 @@ class check_sent_emails_window(QDialog):
 
         self.st = self.st.replace(' ', '')
         self.st = self.st.replace('Subject:', '')
+        self.st = self.st.replace('Receiver:', '')
         self.st = self.st.split(',')
 
-        self.sub = self.st[0]
+        self.st1 = self.st[0]
+        self.st2 = self.st[1]
 
         string = ''
-        args = (self.username, self.st[0])
-
+        args = (self.st1, self.st2)
         self.cursor.callproc('get_one_sent_email', args)
 
         for result in self.cursor.stored_results():
@@ -1008,7 +1027,9 @@ class check_sent_emails_window(QDialog):
         string = str(string).replace("'", '')
         string = str(string).replace("'", '')
 
-        self.st = string
+        string = str(string).split(',')
+
+        self.st = string[1]
 
         self.go_to_email_2()
 
@@ -1022,7 +1043,7 @@ class check_sent_emails_window(QDialog):
 
     def go_to_email_2(self):
 
-        args = (self.username, self.sub)
+        args = (self.st1, self.st2)
         self.cursor.callproc('read_sent_email', args)
         self.conn.commit()
 
@@ -1060,7 +1081,7 @@ class email_window(QDialog):
         self.setLayout(layoutV)
 
     def delete_button_clicked(self):
-        args = (self.username, self.sub)
+        args = (self.sub, )
         self.cursor.callproc('delete_rec_email', args)
 
         self.conn.commit()
@@ -1110,7 +1131,7 @@ class email_window_2(QDialog):
         self.setLayout(layoutV)
 
     def delete_button_clicked(self):
-        args = (self.username, self.sub)
+        args = (self.sub, )
         self.cursor.callproc('delete_sent_email', args)
 
         self.conn.commit()
