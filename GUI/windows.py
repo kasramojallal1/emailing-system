@@ -105,12 +105,17 @@ class signup_window(QDialog):
                 , self.box_pitt.text(), self.box_password.text(), self.box_address.text())
         self.cursor.callproc('pro_create_user', args)
 
+        string = ''
+
         for result in self.cursor.stored_results():
-            print(result.fetchall())
+            string = result.fetchall()
 
         self.conn.commit()
 
-        self.go_to_login()
+        print(string)
+
+        if string == '':
+            self.go_to_login()
 
     def go_to_login(self):
         self.cams = login_window(self.cursor, self.conn)
@@ -466,7 +471,7 @@ class other_user_info(QDialog):
 
         string = str(string).split(", ")
 
-        if len(string) < 8:
+        if len(string) < 5:
 
             print(string)
 
@@ -496,6 +501,33 @@ class other_user_info(QDialog):
 
             self.setLayout(layoutV)
 
+        elif len(string) < 9:
+            username_label = QLabel('username: ' + string[0])
+            fname_label = QLabel('first name:' + string[1])
+            lname_label = QLabel('last name:' + string[2])
+            phone_label = QLabel('phone:' + string[3])
+            birthday_label = QLabel('birthday:' + string[4])
+            nickname_label = QLabel('nickname:' + string[5])
+            pitt_label = QLabel('pitt:' + string[6])
+            address_label = QLabel('address:' + string[7])
+
+            back_button = QPushButton('Back')
+            back_button.clicked.connect(self.back_button_clicked)
+
+            layoutV = QVBoxLayout()
+
+            layoutV.addWidget(username_label)
+            layoutV.addWidget(fname_label)
+            layoutV.addWidget(lname_label)
+            layoutV.addWidget(phone_label)
+            layoutV.addWidget(birthday_label)
+            layoutV.addWidget(nickname_label)
+            layoutV.addWidget(pitt_label)
+            layoutV.addWidget(address_label)
+            layoutV.addWidget(back_button)
+
+            self.setLayout(layoutV)
+
         else:
             username_label = QLabel('username: ' + string[0])
             fname_label = QLabel('first name:' + string[1])
@@ -504,7 +536,7 @@ class other_user_info(QDialog):
             birthday_label = QLabel('birthday:' + string[4] + '-' + string[5] + '-' + string[6])
             nickname_label = QLabel('nickname:' + string[7])
             pitt_label = QLabel('pitt:' + string[8])
-            address_label = QLabel('address:' + string[10])
+            address_label = QLabel('address:' + string[9])
 
             back_button = QPushButton('Back')
             back_button.clicked.connect(self.back_button_clicked)

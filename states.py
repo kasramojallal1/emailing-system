@@ -8,15 +8,8 @@ import sys
 
 
 def whole(cursor, conn):
-
-
     app = QApplication(sys.argv)
     ex = windows.main_window(cursor, conn)
     sys.exit(app.exec_())
-
-
-
-
-
 
     return 0
