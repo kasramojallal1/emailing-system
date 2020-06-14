@@ -5,6 +5,8 @@ from DB import functions
 
 import mysql.connector
 
+from prettytable import PrettyTable
+
 
 class main_window(QMainWindow):
     def __init__(self, cursor, conn):
@@ -318,6 +320,12 @@ class info_window(QDialog):
 
         string = str(string).split(", ")
 
+        print('\n\n\n\n')
+        t = PrettyTable(['id', 'fname', 'lname', 'phone', 'birthday', 'nickname', 'pitt_id', 'address'])
+        t.add_row([string[0], string[1], string[2], string[3],
+                   string[4] + '-' + string[5] + '-' + string[6], string[7], string[8], string[9]])
+        print(t)
+
         username_label = QLabel('username: ' + string[0])
         fname_label = QLabel('first name:' + string[1])
         lname_label = QLabel('last name:' + string[2])
@@ -325,7 +333,7 @@ class info_window(QDialog):
         birthday_label = QLabel('birthday:' + string[4] + '-' + string[5] + '-' + string[6])
         nickname_label = QLabel('nickname:' + string[7])
         pitt_label = QLabel('pitt:' + string[8])
-        address_label = QLabel('address:' + string[10])
+        address_label = QLabel('address:' + string[9])
 
         back_button = QPushButton('Back')
         back_button.clicked.connect(self.back_button_clicked)
@@ -473,7 +481,10 @@ class other_user_info(QDialog):
 
         if len(string) < 5:
 
-            print(string)
+            print('\n\n\n\n')
+            t = PrettyTable(['id', 'fname', 'lname', 'phone', 'birthday', 'nickname', 'pitt_id', 'address'])
+            t.add_row(['', '', '', '', '', '', '', ''])
+            print(t)
 
             username_label = QLabel('username: ')
             fname_label = QLabel('first name:')
@@ -502,6 +513,13 @@ class other_user_info(QDialog):
             self.setLayout(layoutV)
 
         elif len(string) < 9:
+
+            print('\n\n\n\n')
+            t = PrettyTable(['id', 'fname', 'lname', 'phone', 'birthday', 'nickname', 'pitt_id', 'address'])
+            t.add_row([string[0], string[1], string[2], string[3],
+                       string[4], string[5], string[6], string[7]])
+            print(t)
+
             username_label = QLabel('username: ' + string[0])
             fname_label = QLabel('first name:' + string[1])
             lname_label = QLabel('last name:' + string[2])
@@ -529,6 +547,13 @@ class other_user_info(QDialog):
             self.setLayout(layoutV)
 
         else:
+
+            print('\n\n\n\n')
+            t = PrettyTable(['id', 'fname', 'lname', 'phone', 'birthday', 'nickname', 'pitt_id', 'address'])
+            t.add_row([string[0], string[1], string[2], string[3],
+                       string[4] + '-' + string[5] + '-' + string[6], string[7], string[8], string[9]])
+            print(t)
+
             username_label = QLabel('username: ' + string[0])
             fname_label = QLabel('first name:' + string[1])
             lname_label = QLabel('last name:' + string[2])
@@ -670,6 +695,12 @@ class news_window(QDialog):
         string = str(string).replace("'", '')
 
         string = string.split(',')
+
+        print('\n\n\n\n')
+        t = PrettyTable(['news text'])
+        for i in range(len(string)):
+            t.add_row([string[i]])
+        print(t)
 
         self.list = QListWidget()
 
@@ -907,6 +938,12 @@ class check_rec_emails_window(QDialog):
             self.list = QListWidget()
             self.list.clicked.connect(self.list_clicked)
 
+            print('\n\n\n\n')
+            t = PrettyTable(['Sender', 'Subject', 'Read'])
+            for i in range(len(result_string)):
+                t.add_row([result_string[i][0], result_string[i][1], result_string[i][3]])
+            print(t)
+
             for i in range(len(result_string)):
                 self.list.insertItem(i, 'Sender:' + result_string[i][0] + ',  Subject:'
                                      + result_string[i][1] + ',  Read:' + result_string[i][3])
@@ -921,13 +958,12 @@ class check_rec_emails_window(QDialog):
         item = self.list.currentItem()
         self.st = str(item.text())
 
-        self.st = self.st.replace(' ', '')
         self.st = self.st.replace('Subject:', '')
         self.st = self.st.replace('Sender:', '')
         self.st = self.st.split(',')
 
-        self.st1 = self.st[0]
-        self.st2 = self.st[1]
+        self.st1 = str(self.st[0]).lstrip()
+        self.st2 = str(self.st[1]).lstrip()
 
         string = ''
         args = (self.st1, self.st2)
@@ -1036,13 +1072,12 @@ class check_sent_emails_window(QDialog):
         item = self.list.currentItem()
         self.st = str(item.text())
 
-        self.st = self.st.replace(' ', '')
         self.st = self.st.replace('Subject:', '')
         self.st = self.st.replace('Receiver:', '')
         self.st = self.st.split(',')
 
-        self.st1 = self.st[0]
-        self.st2 = self.st[1]
+        self.st1 = str(self.st[0]).lstrip()
+        self.st2 = str(self.st[1]).lstrip()
 
         string = ''
         args = (self.st1, self.st2)
@@ -1097,6 +1132,11 @@ class email_window(QDialog):
         self.page_number = page
         self.sub = sub
 
+        print('\n\n\n\n')
+        t = PrettyTable(['Text'])
+        t.add_row([self.st])
+        print(t)
+
         text_label = QLabel('text:\n' + self.st)
 
         delete_button = QPushButton('Delete')
@@ -1146,6 +1186,11 @@ class email_window_2(QDialog):
         self.st = string
         self.page_number = page
         self.sub = sub
+
+        print('\n\n\n\n')
+        t = PrettyTable(['Text'])
+        t.add_row([self.st])
+        print(t)
 
         text_label = QLabel('text:\n' + self.st)
 

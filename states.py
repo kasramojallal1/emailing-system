@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication
 from DB import functions
 
 import mysql.connector
+from prettytable import PrettyTable
 
 from GUI import windows
 import sys

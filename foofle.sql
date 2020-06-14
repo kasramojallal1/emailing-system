@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Jun 13, 2020 at 09:32 PM
+-- Generation Time: Jun 14, 2020 at 05:33 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.4
 
@@ -96,7 +96,7 @@ end$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_info` ()  BEGIN
     declare def_user varchar(25);
     select last_user into def_user from entries order by date_entered desc LIMIT 1;
-    select * from users where id = def_user;
+    select id, fname, lname, phone, birthday, nickname, pitt_id, address, date_created from users where id = def_user;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_news` ()  BEGIN
@@ -570,9 +570,11 @@ INSERT INTO `emails_new` (`sender`, `receiver`, `cc`, `if_read_sender`, `if_read
 ('qwerty', 'kasra2024', '1', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 23:29:31'),
 ('qwerty', 'popo123', '1', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 23:29:31'),
 ('qwerty', 'qwerty852', '1', '0', '0', '0', '0', 'dead', 'popo is dead', '2020-06-13 23:29:31'),
-('qwerty', 'oplo34', '0', '0', '0', '0', '0', 'fire', 'paris is on fire', '2020-06-13 23:36:21'),
+('qwerty', 'oplo34', '0', '1', '0', '0', '0', 'fire', 'paris is on fire', '2020-06-13 23:36:21'),
 ('qwerty', 'kasra2024', '1', '0', '0', '0', '0', 'fire', 'paris is on fire', '2020-06-13 23:36:21'),
-('qwerty', 'popo123', '1', '0', '0', '0', '0', 'fire', 'paris is on fire', '2020-06-13 23:36:21');
+('qwerty', 'popo123', '1', '0', '0', '0', '0', 'fire', 'paris is on fire', '2020-06-13 23:36:21'),
+('qwerty', 'nicolas', '0', '0', '0', '0', '0', 'kipo has been shot', 'kipo is dead', '2020-06-14 19:10:46'),
+('qwerty', 'qwerty', '1', '1', '1', '0', '0', 'kipo has been shot', 'kipo is dead', '2020-06-14 19:10:46');
 
 --
 -- Triggers `emails_new`
@@ -665,7 +667,27 @@ INSERT INTO `entries` (`last_user`, `date_entered`) VALUES
 ('qwerty', '2020-06-13 21:44:10'),
 ('qwerty', '2020-06-13 21:59:28'),
 ('qwerty', '2020-06-13 22:05:08'),
-('qwerty', '2020-06-13 22:15:00');
+('qwerty', '2020-06-13 22:15:00'),
+('qwerty', '2020-06-14 08:44:38'),
+('qwerty', '2020-06-14 09:37:02'),
+('qwerty', '2020-06-14 09:47:54'),
+('qwerty', '2020-06-14 09:49:24'),
+('qwerty', '2020-06-14 09:53:55'),
+('qwerty', '2020-06-14 10:00:30'),
+('qwerty', '2020-06-14 19:08:57'),
+('nicolas', '2020-06-14 19:13:22'),
+('qwerty', '2020-06-14 19:14:01'),
+('qwerty', '2020-06-14 19:18:28'),
+('qwerty', '2020-06-14 19:20:58'),
+('qwerty', '2020-06-14 19:21:37'),
+('qwerty', '2020-06-14 19:23:18'),
+('qwerty', '2020-06-14 19:23:51'),
+('qwerty', '2020-06-14 19:24:52'),
+('qwerty', '2020-06-14 19:28:40'),
+('qwerty', '2020-06-14 19:30:30'),
+('qwerty', '2020-06-14 19:30:57'),
+('qwerty', '2020-06-14 19:31:50'),
+('qwerty', '2020-06-14 19:34:45');
 
 --
 -- Triggers `entries`
@@ -902,7 +924,33 @@ INSERT INTO `news` (`owner`, `text`, `news_time`) VALUES
 ('qwerty', 'you have a new email', '2020-06-13 23:36:21'),
 ('kasra2024', 'you have a new email', '2020-06-13 23:36:21'),
 ('qwerty', 'you have a new email', '2020-06-13 23:36:21'),
-('popo123', 'you have a new email', '2020-06-13 23:36:21');
+('popo123', 'you have a new email', '2020-06-13 23:36:21'),
+('qwerty', 'you have logged in', '2020-06-14 08:44:38'),
+('kasra2024', 'qwerty wanted to access your info and was access', '2020-06-14 09:33:50'),
+('qwerty', 'you have logged in', '2020-06-14 09:37:02'),
+('qwerty', 'you have logged in', '2020-06-14 09:47:54'),
+('qwerty', 'you have logged in', '2020-06-14 09:49:24'),
+('qwerty', 'you have logged in', '2020-06-14 09:53:55'),
+('qwerty', 'you have logged in', '2020-06-14 10:00:30'),
+('qwerty', 'you have logged in', '2020-06-14 19:08:57'),
+('oplo34', 'qwerty wanted to access your info and was declined access', '2020-06-14 19:09:39'),
+('qwerty', 'you have a new email', '2020-06-14 19:10:46'),
+('nicolas', 'you have a new email', '2020-06-14 19:10:46'),
+('qwerty', 'you have a new email', '2020-06-14 19:10:46'),
+('qwerty', 'you have a new email', '2020-06-14 19:10:46'),
+('nicolas', 'you have logged in', '2020-06-14 19:13:22'),
+('qwerty', 'you have logged in', '2020-06-14 19:14:01'),
+('qwerty', 'you have logged in', '2020-06-14 19:18:28'),
+('qwerty', 'you have logged in', '2020-06-14 19:20:58'),
+('qwerty', 'you have logged in', '2020-06-14 19:21:37'),
+('qwerty', 'you have logged in', '2020-06-14 19:23:18'),
+('qwerty', 'you have logged in', '2020-06-14 19:23:51'),
+('qwerty', 'you have logged in', '2020-06-14 19:24:52'),
+('qwerty', 'you have logged in', '2020-06-14 19:28:40'),
+('qwerty', 'you have logged in', '2020-06-14 19:30:30'),
+('qwerty', 'you have logged in', '2020-06-14 19:30:57'),
+('qwerty', 'you have logged in', '2020-06-14 19:31:50'),
+('qwerty', 'you have logged in', '2020-06-14 19:34:45');
 
 -- --------------------------------------------------------
 
@@ -935,7 +983,8 @@ INSERT INTO `pro_emails` (`id`, `sender`, `receivers`, `ccs`, `subject`, `text`,
 (9, 'nicolas', 0x040300150000000300070073000e0013016765747465723167657474657232676574746572332d7177657274792d6b61737261323032342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-13 16:15:48'),
 (10, 'qwerty', 0x040300150000000300070013000e0083006765747465723167657474657232676574746572332d2d6f706c6f33342d717765727479333639, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d717765727479383532, 'dead', 'popo is dead', '2020-06-13 23:29:31'),
 (11, 'qwerty', 0x040300150000000300070013000e0023006765747465723167657474657232676574746572332d2d2d, 0x04030009000000030003001300060023006363316363326363332d2d2d, 'dead', 'popo is dead', '2020-06-13 23:35:05'),
-(12, 'qwerty', 0x040300150000000300070073000e0083006765747465723167657474657232676574746572332d6f706c6f33342d2d, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d, 'fire', 'paris is on fire', '2020-06-13 23:36:21');
+(12, 'qwerty', 0x040300150000000300070073000e0083006765747465723167657474657232676574746572332d6f706c6f33342d2d, 0x0403000900000003000300a300060023016363316363326363332d6b61737261323032342d706f706f3132332d, 'fire', 'paris is on fire', '2020-06-13 23:36:21'),
+(13, 'qwerty', 0x040300150000000300070083000e0093006765747465723167657474657232676574746572332d6e69636f6c61732d2d, 0x04030009000000030003007300060083006363316363326363332d7177657274792d2d, 'kipo has been shot', 'kipo is dead', '2020-06-14 19:10:46');
 
 -- --------------------------------------------------------
 
@@ -1017,7 +1066,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `pro_emails`
 --
 ALTER TABLE `pro_emails`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
