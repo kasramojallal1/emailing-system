@@ -1,6 +1,6 @@
-# Foofle
+# emailing-system
 
-This project is a mailing system. You have a database(MariaDB) in which you store your users data, their information and emails they send and receive.
-This database has many procedures(functions) so in order to do a certain task, all you have to do is to call that procedure with specific inputs.
+This project is a mailing system. There is a MariaDB database in which users' data are stored. Users are able to send and receive emails.
+This database has many procedures(functions), so in order to do a specific task, all there is to do is call that procedure with specific inputs.
 
-The user interface is created by pyQt5. The python code in mostly design of the interface and calling the procedures of the database.
+The user interface is created by pyQt5. The Python code is mostly the design of the interface and calling the procedures of the database.
